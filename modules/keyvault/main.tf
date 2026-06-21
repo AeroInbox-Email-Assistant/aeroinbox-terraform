@@ -1,5 +1,5 @@
 resource "random_id" "kv_name" {
-  byte_length = 2
+  byte_length = 3
 }
 
 module "keyvault" {

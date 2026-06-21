@@ -14,18 +14,18 @@ output "postgres_server_name" {
 }
 
 output "redis_id" {
-  value       = azurerm_redis_cache.redis.id
+  value       = azurerm_managed_redis.redis.id
   description = "The resource ID of the Redis Cache"
 }
 
 output "redis_hostname" {
-  value       = azurerm_redis_cache.redis.hostname
+  value       = azurerm_managed_redis.redis.hostname
   description = "The hostname of the Redis Cache"
   sensitive   = true
 }
 
 output "redis_primary_access_key" {
-  value       = azurerm_redis_cache.redis.primary_access_key
+  value       = azurerm_managed_redis.redis.default_database[0].primary_access_key
   description = "The primary access key of the Redis Cache"
   sensitive   = true
 }

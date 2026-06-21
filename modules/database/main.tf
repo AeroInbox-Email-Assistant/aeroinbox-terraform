@@ -70,14 +70,14 @@ resource "azurerm_postgresql_flexible_server_active_directory_administrator" "me
   principal_type      = "ServicePrincipal"
 }
 
-resource "azurerm_redis_cache" "redis" {
-  name                 = "redis-${var.project_name}-${var.environment}"
-  location             = var.location
-  resource_group_name  = var.resource_group_name
-  capacity             = var.redis_capacity
-  family               = var.redis_family
-  sku_name             = var.redis_sku_name
-  non_ssl_port_enabled = var.redis_non_ssl_port_enabled
-  minimum_tls_version  = var.redis_minimum_tls_version
-  tags                 = var.tags
+resource "azurerm_managed_redis" "redis" {
+  name                = "redis-${var.project_name}-${var.environment}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  sku_name            = var.redis_sku_name == "Standard" || var.redis_sku_name == "Basic" ? "Balanced_B0" : var.redis_sku_name
+  tags                = var.tags
+
+  default_database {
+    access_keys_authentication_enabled = true
+  }
 }
