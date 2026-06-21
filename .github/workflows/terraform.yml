@@ -8,6 +8,7 @@ on:
       - '**/*.tf'
       - 'environments/**'
       - 'modules/**'
+      - '.github/workflows/**'
   pull_request:
     branches:
       - main
@@ -15,6 +16,7 @@ on:
       - '**/*.tf'
       - 'environments/**'
       - 'modules/**'
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
       action:
