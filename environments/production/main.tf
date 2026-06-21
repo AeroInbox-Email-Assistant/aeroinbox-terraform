@@ -7,23 +7,15 @@ locals {
   }
 }
 
-import {
-  to = module.resource_group.azurerm_resource_group.this
-  id = "/subscriptions/${var.subscription_id}/resourceGroups/rg-${var.project_name}-${var.environment}"
-}
-
-module "resource_group" {
-  source   = "../../modules/resource-group"
-  name     = "rg-${var.project_name}-${var.environment}"
-  location = var.location
-  tags     = local.tags
+data "azurerm_resource_group" "this" {
+  name = "rg-${var.project_name}-${var.environment}"
 }
 
 module "network" {
   source                    = "../../modules/network"
-  resource_group_name       = module.resource_group.name
-  resource_group_id         = module.resource_group.id
-  location                  = module.resource_group.location
+  resource_group_name       = data.azurerm_resource_group.this.name
+  resource_group_id         = data.azurerm_resource_group.this.id
+  location                  = data.azurerm_resource_group.this.location
   project_name              = var.project_name
   environment               = var.environment
   vnet_address_space        = var.vnet_address_space
@@ -32,24 +24,20 @@ module "network" {
   subnet_db_prefixes        = var.subnet_db_prefixes
   subnet_endpoints_prefixes = var.subnet_endpoints_prefixes
   tags                      = local.tags
-
-  depends_on = [module.resource_group]
 }
 
 module "identity" {
   source              = "../../modules/identity"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
+  resource_group_name = data.azurerm_resource_group.this.name
+  location            = data.azurerm_resource_group.this.location
   environment         = var.environment
   tags                = local.tags
-
-  depends_on = [module.resource_group]
 }
 
 module "keyvault" {
   source                   = "../../modules/keyvault"
-  resource_group_name      = module.resource_group.name
-  location                 = module.resource_group.location
+  resource_group_name      = data.azurerm_resource_group.this.name
+  location                 = data.azurerm_resource_group.this.location
   project_name             = var.project_name
   environment              = var.environment
   tenant_id                = var.tenant_id
@@ -66,19 +54,17 @@ module "keyvault" {
 
 module "acr" {
   source              = "../../modules/acr"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
+  resource_group_name = data.azurerm_resource_group.this.name
+  location            = data.azurerm_resource_group.this.location
   project_name        = var.project_name
   environment         = var.environment
   tags                = local.tags
-
-  depends_on = [module.resource_group]
 }
 
 module "database" {
   source                     = "../../modules/database"
-  resource_group_name        = module.resource_group.name
-  location                   = module.resource_group.location
+  resource_group_name        = data.azurerm_resource_group.this.name
+  location                   = data.azurerm_resource_group.this.location
   project_name               = var.project_name
   environment                = var.environment
   tenant_id                  = var.tenant_id
@@ -98,8 +84,8 @@ module "database" {
 
 module "servicebus" {
   source               = "../../modules/servicebus"
-  resource_group_name  = module.resource_group.name
-  location             = module.resource_group.location
+  resource_group_name  = data.azurerm_resource_group.this.name
+  location             = data.azurerm_resource_group.this.location
   project_name         = var.project_name
   environment          = var.environment
   meeting_principal_id = module.identity.meeting_identity_principal_id
@@ -110,19 +96,17 @@ module "servicebus" {
 
 module "monitoring" {
   source              = "../../modules/monitoring"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
+  resource_group_name = data.azurerm_resource_group.this.name
+  location            = data.azurerm_resource_group.this.location
   project_name        = var.project_name
   environment         = var.environment
   tags                = local.tags
-
-  depends_on = [module.resource_group]
 }
 
 module "appgateway" {
   source              = "../../modules/appgateway"
-  resource_group_name = module.resource_group.name
-  location            = module.resource_group.location
+  resource_group_name = data.azurerm_resource_group.this.name
+  location            = data.azurerm_resource_group.this.location
   project_name        = var.project_name
   environment         = var.environment
   subnet_appgw_id     = module.network.subnet_appgw_id
@@ -135,9 +119,9 @@ module "appgateway" {
 
 module "aks" {
   source                     = "../../modules/aks"
-  resource_group_name        = module.resource_group.name
-  resource_group_id          = module.resource_group.id
-  location                   = module.resource_group.location
+  resource_group_name        = data.azurerm_resource_group.this.name
+  resource_group_id          = data.azurerm_resource_group.this.id
+  location                   = data.azurerm_resource_group.this.location
   project_name               = var.project_name
   environment                = var.environment
   subnet_aks_id              = module.network.subnet_aks_id
@@ -167,7 +151,6 @@ module "aks" {
   tags                       = local.tags
 
   depends_on = [
-    module.resource_group,
     module.network,
     module.identity,
     module.keyvault,
@@ -181,8 +164,8 @@ module "aks" {
 
 module "private_endpoints" {
   source                  = "../../modules/private-endpoints"
-  resource_group_name     = module.resource_group.name
-  location                = module.resource_group.location
+  resource_group_name     = data.azurerm_resource_group.this.name
+  location                = data.azurerm_resource_group.this.location
   vnet_id                 = module.network.vnet_id
   subnet_endpoints_id     = module.network.subnet_endpoints_id
   key_vault_id            = module.keyvault.key_vault_id
@@ -208,7 +191,7 @@ resource "azurerm_role_assignment" "aks_gw_contributor" {
 }
 
 resource "azurerm_role_assignment" "aks_rg_reader" {
-  scope                = module.resource_group.id
+  scope                = data.azurerm_resource_group.this.id
   role_definition_name = "Reader"
   principal_id         = module.aks.aks_identity_principal_id
 }

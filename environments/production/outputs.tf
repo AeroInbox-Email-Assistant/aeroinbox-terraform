@@ -1,5 +1,5 @@
 output "resource_group_name" {
-  value       = module.resource_group.name
+  value       = data.azurerm_resource_group.this.name
   description = "The name of the resource group"
 }
 
