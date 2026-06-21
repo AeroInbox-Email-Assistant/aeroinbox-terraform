@@ -9,6 +9,26 @@ locals {
   probe_name                     = "aks-health-probe"
 }
 
+resource "azurerm_web_application_firewall_policy" "waf" {
+  count               = startswith(var.appgw_sku_name, "WAF") ? 1 : 0
+  name                = "waf-policy-${var.project_name}-${var.environment}"
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  tags                = var.tags
+
+  policy_settings {
+    enabled = true
+    mode    = "Prevention"
+  }
+
+  managed_rules {
+    managed_rule_set {
+      type    = "OWASP"
+      version = "3.2"
+    }
+  }
+}
+
 resource "azurerm_public_ip" "appgw" {
   name                = "pip-appgw-${var.project_name}-${var.environment}"
   resource_group_name = var.resource_group_name
@@ -29,6 +49,8 @@ resource "azurerm_application_gateway" "appgw" {
     name = var.appgw_sku_name
     tier = var.appgw_sku_tier
   }
+
+  firewall_policy_id = startswith(var.appgw_sku_name, "WAF") ? azurerm_web_application_firewall_policy.waf[0].id : null
 
   autoscale_configuration {
     min_capacity = 1
@@ -94,13 +116,5 @@ resource "azurerm_application_gateway" "appgw" {
     pick_host_name_from_backend_http_settings = true
   }
 
-  dynamic "waf_configuration" {
-    for_each = startswith(var.appgw_sku_name, "WAF") ? [1] : []
-    content {
-      enabled          = true
-      firewall_mode    = "Prevention"
-      rule_set_type    = "OWASP"
-      rule_set_version = "3.2"
-    }
-  }
+
 }

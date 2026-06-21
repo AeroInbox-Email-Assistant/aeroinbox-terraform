@@ -28,6 +28,7 @@ module "postgresql" {
   # Disable default AllowAllFireWallRule and ensure public network access is disabled
   firewall_rules                = {}
   public_network_access_enabled = false
+  high_availability             = null
 
   authentication = {
     active_directory_auth_enabled = true
