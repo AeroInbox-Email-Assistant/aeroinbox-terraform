@@ -1,0 +1,322 @@
+name: Terraform CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.tf'
+      - 'environments/**'
+      - 'modules/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**/*.tf'
+      - 'environments/**'
+      - 'modules/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        type: choice
+        description: 'Action to perform'
+        required: true
+        options:
+          - plan
+          - apply
+          - destroy
+        default: 'plan'
+      environment:
+        type: choice
+        description: 'Target environment'
+        required: true
+        options:
+          - production
+          - dev
+        default: 'production'
+
+# Permissions required for Azure OIDC login and pull request commenting
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+env:
+  # Determine the target environment: default to production for push/PR, otherwise use manual input
+  TARGET_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
+  # Determine the state file key: use dev.terraform.tfstate for dev environment, otherwise prod.terraform.tfstate
+  TF_STATE_KEY: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev') && 'dev.terraform.tfstate' || 'prod.terraform.tfstate' }}
+
+jobs:
+  validate:
+    name: Terraform Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      # SECURITY: Azure login using GitHub OIDC federation (no client secrets stored)
+      - name: Azure Login via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # SECURITY: Initialize remote backend using dynamically passed state variables from secrets
+      - name: Terraform Init
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_STATE_RG }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_STATE_CONTAINER }}" \
+            -backend-config="key=${{ env.TF_STATE_KEY }}"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Validate
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: terraform validate
+
+  plan:
+    name: Terraform Plan
+    needs: validate
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' || 
+      github.event_name == 'pull_request' || 
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.action == 'plan' || github.event.inputs.action == 'apply'))
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      # SECURITY: Azure login using GitHub OIDC federation (no client secrets stored)
+      - name: Azure Login via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # SECURITY: Initialize remote backend using dynamically passed state variables from secrets
+      - name: Terraform Init
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_STATE_RG }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_STATE_CONTAINER }}" \
+            -backend-config="key=${{ env.TF_STATE_KEY }}"
+
+      # SECURITY: Generate the execution plan, passing sensitive variables directly from GitHub Secrets
+      - name: Terraform Plan
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: |
+          terraform plan \
+            -out=tfplan \
+            -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
+            -var="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
+            -var="terraform_sp_object_id=${{ secrets.TF_SP_OBJECT_ID }}"
+
+      # SECURITY: Extract plain-text plan without logging secrets, saving it for review and PR commenting
+      - name: Save Plan Output as Text
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: terraform show -no-color tfplan > plan.txt
+
+      - name: Upload Binary Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan-${{ env.TARGET_ENV }}
+          path: environments/${{ env.TARGET_ENV }}/tfplan
+          retention-days: 1
+
+      - name: Upload Text Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan-text-${{ env.TARGET_ENV }}
+          path: environments/${{ env.TARGET_ENV }}/plan.txt
+          retention-days: 7
+
+      - name: Post Plan to GitHub Actions Summary
+        run: |
+          echo "### Terraform Plan Output (Target: ${{ env.TARGET_ENV }})" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>Click to view plan details</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`terraform" >> $GITHUB_STEP_SUMMARY
+          cat environments/${{ env.TARGET_ENV }}/plan.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+        shell: bash
+
+      - name: Post Plan to PR Comments
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const planText = fs.readFileSync('environments/${{ env.TARGET_ENV }}/plan.txt', 'utf8');
+            const truncatedPlan = planText.length > 60000 ? planText.substring(0, 60000) + '\n... [Plan output truncated due to length limits] ...' : planText;
+            const body = `### Terraform Plan Output (Target: \`${{ env.TARGET_ENV }}\`)
+            
+            <details>
+            <summary>Click to view plan details</summary>
+
+            \`\`\`terraform
+            ${truncatedPlan}
+            \`\`\`
+
+            </details>`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+  apply:
+    name: Terraform Apply
+    needs: plan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply'
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      # SECURITY: Azure login using GitHub OIDC federation (no client secrets stored)
+      - name: Azure Login via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # SECURITY: Initialize remote backend using dynamically passed state variables from secrets
+      - name: Terraform Init
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_STATE_RG }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_STATE_CONTAINER }}" \
+            -backend-config="key=${{ env.TF_STATE_KEY }}"
+
+      - name: Download Binary Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan-${{ env.TARGET_ENV }}
+          path: environments/${{ env.TARGET_ENV }}
+
+      # SECURITY: Execute apply using the pre-approved plan binary
+      - name: Terraform Apply
+        working-directory: environments/${{ env.TARGET_ENV }}
+        id: apply
+        run: terraform apply -input=false tfplan
+
+      - name: Post Apply Summary
+        if: success()
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: |
+          echo "### ✅ Terraform Apply Succeeded (Target: ${{ env.TARGET_ENV }})" >> $GITHUB_STEP_SUMMARY
+          echo "#### Key Outputs:" >> $GITHUB_STEP_SUMMARY
+          echo "- **AKS Cluster Name:** $(terraform output -raw aks_cluster_name)" >> $GITHUB_STEP_SUMMARY
+          echo "- **ACR Login Server:** $(terraform output -raw acr_login_server)" >> $GITHUB_STEP_SUMMARY
+          echo "- **App Gateway Public IP:** $(terraform output -raw appgw_public_ip)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Key Vault URI:** $(terraform output -raw key_vault_uri)" >> $GITHUB_STEP_SUMMARY
+        shell: bash
+
+      - name: Post Apply Failure Notification
+        if: failure()
+        run: |
+          echo "### ❌ Terraform Apply Failed (Target: ${{ env.TARGET_ENV }})" >> $GITHUB_STEP_SUMMARY
+          echo "Please review the workflow logs above for error details." >> $GITHUB_STEP_SUMMARY
+
+  destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'destroy'
+    environment: ${{ github.event.inputs.environment }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      # SECURITY: Azure login using GitHub OIDC federation (no client secrets stored)
+      - name: Azure Login via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # SECURITY: Initialize remote backend using dynamically passed state variables from secrets
+      - name: Terraform Init
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ secrets.TF_STATE_RG }}" \
+            -backend-config="storage_account_name=${{ secrets.TF_STATE_STORAGE_ACCOUNT }}" \
+            -backend-config="container_name=${{ secrets.TF_STATE_CONTAINER }}" \
+            -backend-config="key=${{ env.TF_STATE_KEY }}"
+
+      # SECURITY: Generate the destruction plan, passing sensitive variables directly from GitHub Secrets
+      - name: Terraform Plan Destroy
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: |
+          terraform plan \
+            -destroy \
+            -out=destroy.tfplan \
+            -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            -var="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
+            -var="client_id=${{ secrets.AZURE_CLIENT_ID }}" \
+            -var="terraform_sp_object_id=${{ secrets.TF_SP_OBJECT_ID }}"
+
+      # SECURITY: Extract plain-text destroy plan for review
+      - name: Save Destroy Plan Output as Text
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: terraform show -no-color destroy.tfplan > destroy_plan.txt
+
+      - name: Post Destroy Warning and Plan to Actions Summary
+        run: |
+          echo "### ⚠️ WARNING: This will DESTROY all infrastructure (Target: ${{ env.TARGET_ENV }})" >> $GITHUB_STEP_SUMMARY
+          echo "<details><summary>Click to view resources scheduled for destruction</summary>" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`terraform" >> $GITHUB_STEP_SUMMARY
+          cat environments/${{ env.TARGET_ENV }}/destroy_plan.txt >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "</details>" >> $GITHUB_STEP_SUMMARY
+        shell: bash
+
+      # SECURITY: Execute the destruction plan
+      - name: Terraform Destroy
+        working-directory: environments/${{ env.TARGET_ENV }}
+        run: terraform apply destroy.tfplan
+
+      - name: Post Destroy Summary
+        run: |
+          echo "### 🗑️ Terraform Destroy Completed Successfully (Target: ${{ env.TARGET_ENV }})" >> $GITHUB_STEP_SUMMARY
+        shell: bash
