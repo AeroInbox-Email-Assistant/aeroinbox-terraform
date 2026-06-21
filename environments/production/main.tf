@@ -7,6 +7,14 @@ locals {
   }
 }
 
+removed {
+  from = module.resource_group.azurerm_resource_group.this
+
+  lifecycle {
+    destroy = false
+  }
+}
+
 data "azurerm_resource_group" "this" {
   name = "rg-${var.project_name}-${var.environment}"
 }
@@ -15,7 +23,7 @@ module "network" {
   source                    = "../../modules/network"
   resource_group_name       = data.azurerm_resource_group.this.name
   resource_group_id         = data.azurerm_resource_group.this.id
-  location                  = data.azurerm_resource_group.this.location
+  location                  = var.location
   project_name              = var.project_name
   environment               = var.environment
   vnet_address_space        = var.vnet_address_space
@@ -29,7 +37,7 @@ module "network" {
 module "identity" {
   source              = "../../modules/identity"
   resource_group_name = data.azurerm_resource_group.this.name
-  location            = data.azurerm_resource_group.this.location
+  location            = var.location
   environment         = var.environment
   tags                = local.tags
 }
@@ -37,7 +45,7 @@ module "identity" {
 module "keyvault" {
   source                   = "../../modules/keyvault"
   resource_group_name      = data.azurerm_resource_group.this.name
-  location                 = data.azurerm_resource_group.this.location
+  location                 = var.location
   project_name             = var.project_name
   environment              = var.environment
   tenant_id                = var.tenant_id
@@ -55,7 +63,7 @@ module "keyvault" {
 module "acr" {
   source              = "../../modules/acr"
   resource_group_name = data.azurerm_resource_group.this.name
-  location            = data.azurerm_resource_group.this.location
+  location            = var.location
   project_name        = var.project_name
   environment         = var.environment
   tags                = local.tags
@@ -64,7 +72,7 @@ module "acr" {
 module "database" {
   source                     = "../../modules/database"
   resource_group_name        = data.azurerm_resource_group.this.name
-  location                   = data.azurerm_resource_group.this.location
+  location                   = var.location
   project_name               = var.project_name
   environment                = var.environment
   tenant_id                  = var.tenant_id
@@ -85,7 +93,7 @@ module "database" {
 module "servicebus" {
   source               = "../../modules/servicebus"
   resource_group_name  = data.azurerm_resource_group.this.name
-  location             = data.azurerm_resource_group.this.location
+  location             = var.location
   project_name         = var.project_name
   environment          = var.environment
   meeting_principal_id = module.identity.meeting_identity_principal_id
@@ -97,7 +105,7 @@ module "servicebus" {
 module "monitoring" {
   source              = "../../modules/monitoring"
   resource_group_name = data.azurerm_resource_group.this.name
-  location            = data.azurerm_resource_group.this.location
+  location            = var.location
   project_name        = var.project_name
   environment         = var.environment
   tags                = local.tags
@@ -106,7 +114,7 @@ module "monitoring" {
 module "appgateway" {
   source              = "../../modules/appgateway"
   resource_group_name = data.azurerm_resource_group.this.name
-  location            = data.azurerm_resource_group.this.location
+  location            = var.location
   project_name        = var.project_name
   environment         = var.environment
   subnet_appgw_id     = module.network.subnet_appgw_id
@@ -121,7 +129,7 @@ module "aks" {
   source                     = "../../modules/aks"
   resource_group_name        = data.azurerm_resource_group.this.name
   resource_group_id          = data.azurerm_resource_group.this.id
-  location                   = data.azurerm_resource_group.this.location
+  location                   = var.location
   project_name               = var.project_name
   environment                = var.environment
   subnet_aks_id              = module.network.subnet_aks_id
@@ -165,7 +173,7 @@ module "aks" {
 module "private_endpoints" {
   source                  = "../../modules/private-endpoints"
   resource_group_name     = data.azurerm_resource_group.this.name
-  location                = data.azurerm_resource_group.this.location
+  location                = var.location
   vnet_id                 = module.network.vnet_id
   subnet_endpoints_id     = module.network.subnet_endpoints_id
   key_vault_id            = module.keyvault.key_vault_id
