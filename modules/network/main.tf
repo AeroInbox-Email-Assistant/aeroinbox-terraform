@@ -2,11 +2,11 @@ module "vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
   version = "0.17.1"
 
-  name                = "vnet-${var.project_name}-${var.environment}"
-  location            = var.location
-  parent_id           = var.resource_group_id
-  address_space       = var.vnet_address_space
-  tags                = var.tags
+  name          = "vnet-${var.project_name}-${var.environment}"
+  location      = var.location
+  parent_id     = var.resource_group_id
+  address_space = var.vnet_address_space
+  tags          = var.tags
 
   subnets = {
     snet-aks = {

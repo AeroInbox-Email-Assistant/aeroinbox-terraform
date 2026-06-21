@@ -2,15 +2,15 @@ module "keyvault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "0.9.1"
 
-  name                          = "kv-${var.project_name}-${var.environment}"
-  resource_group_name           = var.resource_group_name
-  location                      = var.location
-  tenant_id                     = var.tenant_id
-  sku_name                      = "standard"
+  name                           = "kv-${var.project_name}-${var.environment}"
+  resource_group_name            = var.resource_group_name
+  location                       = var.location
+  tenant_id                      = var.tenant_id
+  sku_name                       = "standard"
   legacy_access_policies_enabled = false
-  purge_protection_enabled      = true
-  public_network_access_enabled = false
-  tags                          = var.tags
+  purge_protection_enabled       = true
+  public_network_access_enabled  = false
+  tags                           = var.tags
 }
 
 resource "azurerm_role_assignment" "tf_sp_secrets_officer" {

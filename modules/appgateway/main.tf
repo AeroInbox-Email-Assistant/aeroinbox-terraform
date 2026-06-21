@@ -26,8 +26,8 @@ resource "azurerm_application_gateway" "appgw" {
   tags                = var.tags
 
   sku {
-    name     = var.appgw_sku_name
-    tier     = var.appgw_sku_tier
+    name = var.appgw_sku_name
+    tier = var.appgw_sku_tier
   }
 
   autoscale_configuration {
