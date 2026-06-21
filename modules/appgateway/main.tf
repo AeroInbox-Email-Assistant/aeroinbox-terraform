@@ -82,12 +82,13 @@ resource "azurerm_application_gateway" "appgw" {
   }
 
   backend_http_settings {
-    name                  = local.http_setting_name
-    cookie_based_affinity = "Disabled"
-    port                  = 80
-    protocol              = "Http"
-    request_timeout       = 30
-    probe_name            = local.probe_name
+    name                                = local.http_setting_name
+    cookie_based_affinity               = "Disabled"
+    port                                = 80
+    protocol                            = "Http"
+    request_timeout                     = 30
+    probe_name                          = local.probe_name
+    pick_host_name_from_backend_address = true
   }
 
   http_listener {
