@@ -25,7 +25,7 @@ output "redis_hostname" {
 }
 
 output "redis_primary_access_key" {
-  value       = one(azurerm_managed_redis.redis.default_database[*].primary_access_key)
+  value       = azurerm_managed_redis.redis.id != "" ? one(azurerm_managed_redis.redis.default_database[*].primary_access_key) : null
   description = "The primary access key of the Redis Cache"
   sensitive   = true
 }
