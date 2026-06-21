@@ -25,6 +25,10 @@ module "postgresql" {
   delegated_subnet_id = var.subnet_db_id
   private_dns_zone_id = azurerm_private_dns_zone.postgres.id
 
+  # Disable default AllowAllFireWallRule and ensure public network access is disabled
+  firewall_rules                = {}
+  public_network_access_enabled = false
+
   authentication = {
     active_directory_auth_enabled = true
     password_auth_enabled         = false
