@@ -102,3 +102,13 @@ import {
   to = module.database.azurerm_private_dns_zone_virtual_network_link.postgres
   id = "/subscriptions/${var.subscription_id}/resourceGroups/rg-${var.project_name}-${var.environment}/providers/Microsoft.Network/privateDnsZones/privatelink.postgres.database.azure.com/virtualNetworkLinks/link-postgres-${var.project_name}-${var.environment}"
 }
+
+import {
+  to = module.database.module.postgresql.azurerm_postgresql_flexible_server.this
+  id = "/subscriptions/${var.subscription_id}/resourceGroups/rg-${var.project_name}-${var.environment}/providers/Microsoft.DBforPostgreSQL/flexibleServers/pg-${var.project_name}-${var.environment}"
+}
+
+import {
+  to = module.database.azurerm_managed_redis.redis
+  id = "/subscriptions/${var.subscription_id}/resourceGroups/rg-${var.project_name}-${var.environment}/providers/Microsoft.Cache/redisEnterprise/redis-${var.project_name}-${var.environment}"
+}
