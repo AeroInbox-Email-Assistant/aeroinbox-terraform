@@ -1,0 +1,35 @@
+# Terraform state files
+*.tfstate
+*.tfstate.backup
+*.tfstate.*.backup
+
+# Terraform directory
+.terraform/
+.terraform.lock.hcl
+
+# Variable files that may contain sensitive data
+terraform.tfvars
+*.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Sensitive files
+*.pem
+*.key
+*.p12
+credentials
+credentials.json
+*credentials*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude .tfvars files that include secrets
+*.tfvars
+
+# Standard OS files
+.DS_Store
+Thumbs.db
