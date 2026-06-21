@@ -58,7 +58,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.0
+          terraform_version: 1.15.6
 
       # SECURITY: Azure login using GitHub OIDC federation (no client secrets stored)
       - name: Azure Login via OIDC
@@ -100,7 +100,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.0
+          terraform_version: 1.15.6
 
       # SECURITY: Azure login using GitHub OIDC federation (no client secrets stored)
       - name: Azure Login via OIDC
@@ -201,7 +201,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.0
+          terraform_version: 1.15.6
 
       # SECURITY: Azure login using GitHub OIDC federation (no client secrets stored)
       - name: Azure Login via OIDC
@@ -263,7 +263,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.0
+          terraform_version: 1.15.6
 
       # SECURITY: Azure login using GitHub OIDC federation (no client secrets stored)
       - name: Azure Login via OIDC
