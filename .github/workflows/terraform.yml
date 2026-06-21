@@ -46,6 +46,12 @@ env:
   TARGET_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
   # Determine the state file key: use dev.terraform.tfstate for dev environment, otherwise prod.terraform.tfstate
   TF_STATE_KEY: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev') && 'dev.terraform.tfstate' || 'prod.terraform.tfstate' }}
+  # SECURITY: Configure OIDC variables for Terraform CLI/Backend authentication
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_USE_OIDC: true
+  ARM_USE_AZUREAD: true
 
 jobs:
   validate:
