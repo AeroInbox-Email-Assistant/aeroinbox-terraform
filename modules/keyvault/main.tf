@@ -14,7 +14,10 @@ module "keyvault" {
   legacy_access_policies_enabled = false
   purge_protection_enabled       = true
   public_network_access_enabled  = true
-  network_acls                   = null
+  network_acls                   = {
+    default_action = "Allow"
+    bypass         = "AzureServices"
+  }
   tags                           = var.tags
 }
 
