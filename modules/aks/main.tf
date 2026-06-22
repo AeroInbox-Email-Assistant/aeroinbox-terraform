@@ -9,6 +9,12 @@ module "aks" {
   dns_prefix         = "aks-${var.project_name}-${var.environment}"
   tags               = var.tags
 
+  network_profile = {
+    network_plugin = "azure"
+    service_cidr   = "10.240.0.0/16"
+    dns_service_ip = "10.240.0.10"
+  }
+
   default_agent_pool = {
     name            = "agentpool"
     vm_size         = var.system_node_vm_size
