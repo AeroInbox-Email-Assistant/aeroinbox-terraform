@@ -33,3 +33,13 @@ output "kube_config" {
   description = "The raw kubeconfig YAML for the AKS cluster"
   sensitive   = true
 }
+
+output "aks_control_plane_fqdn" {
+  value       = module.aks.fqdn
+  description = "The control plane FQDN of the AKS cluster"
+}
+
+output "aks_control_plane_private_fqdn" {
+  value       = module.aks.private_fqdn
+  description = "The control plane private FQDN of the AKS cluster (if private)"
+}

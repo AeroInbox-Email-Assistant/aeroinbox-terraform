@@ -73,3 +73,13 @@ output "encryption_key_name" {
   value       = "encryption-key"
   description = "Key Vault secret name for encryption key"
 }
+
+output "aks_control_plane_fqdn" {
+  value       = module.aks.aks_control_plane_fqdn
+  description = "The control plane FQDN of the AKS cluster"
+}
+
+output "aks_control_plane_private_fqdn" {
+  value       = module.aks.aks_control_plane_private_fqdn
+  description = "The control plane private FQDN of the AKS cluster (if private)"
+}

@@ -79,7 +79,7 @@ variable "system_node_vm_size" {
 variable "system_node_count" {
   type        = number
   description = "The number of nodes in the system node pool"
-  default     = 2
+  default     = 1
 }
 
 variable "user_node_vm_size" {
@@ -91,13 +91,13 @@ variable "user_node_vm_size" {
 variable "user_node_min_count" {
   type        = number
   description = "The minimum number of nodes in the user node pool"
-  default     = 2
+  default     = 1
 }
 
 variable "user_node_max_count" {
   type        = number
   description = "The maximum number of nodes in the user node pool"
-  default     = 5
+  default     = 2
 }
 
 variable "appgw_sku_name" {
@@ -121,5 +121,5 @@ variable "postgres_dns_zone_name" {
 variable "user_node_pool_enabled" {
   type        = bool
   description = "Whether to create a separate user node pool"
-  default     = false
+  default     = true
 }
