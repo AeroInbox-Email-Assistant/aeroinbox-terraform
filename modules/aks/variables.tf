@@ -147,3 +147,9 @@ variable "tags" {
   type        = map(string)
   description = "A mapping of tags to assign to the AKS resources"
 }
+
+variable "user_node_pool_enabled" {
+  type        = bool
+  description = "Whether to create a separate user node pool"
+  default     = true
+}

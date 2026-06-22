@@ -23,7 +23,7 @@ module "aks" {
     os_disk_size_gb = 30
   }
 
-  agent_pools = {
+  agent_pools = var.user_node_pool_enabled ? {
     userpool = {
       name                = "userpool"
       vm_size             = var.user_node_vm_size
@@ -33,7 +33,7 @@ module "aks" {
       mode                = "User"
       vnet_subnet_id      = var.subnet_aks_id
     }
-  }
+  } : {}
 
   # Enabled features
   oidc_issuer_profile = {

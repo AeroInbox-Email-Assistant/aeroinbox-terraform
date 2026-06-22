@@ -117,3 +117,9 @@ variable "postgres_dns_zone_name" {
   description = "The private DNS zone name for PostgreSQL"
   default     = "privatelink.postgres.database.azure.com"
 }
+
+variable "user_node_pool_enabled" {
+  type        = bool
+  description = "Whether to create a separate user node pool"
+  default     = false
+}

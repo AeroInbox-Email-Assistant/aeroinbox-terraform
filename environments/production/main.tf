@@ -144,6 +144,7 @@ module "aks" {
   user_node_vm_size          = var.user_node_vm_size
   user_node_min_count        = var.user_node_min_count
   user_node_max_count        = var.user_node_max_count
+  user_node_pool_enabled     = var.user_node_pool_enabled
   api_identity_id            = module.identity.api_identity_id
   api_client_id              = module.identity.api_identity_client_id
   api_principal_id           = module.identity.api_identity_principal_id
