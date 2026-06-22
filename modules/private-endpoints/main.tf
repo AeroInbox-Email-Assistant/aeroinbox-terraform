@@ -10,14 +10,14 @@ resource "azurerm_private_dns_zone" "acr" {
   tags                = var.tags
 }
 
-resource "azurerm_private_dns_zone" "sb" {
-  name                = "privatelink.servicebus.windows.net"
-  resource_group_name = var.resource_group_name
-  tags                = var.tags
-}
+# resource "azurerm_private_dns_zone" "sb" {
+#   name                = "privatelink.servicebus.windows.net"
+#   resource_group_name = var.resource_group_name
+#   tags                = var.tags
+# }
 
 resource "azurerm_private_dns_zone" "redis" {
-  name                = "privatelink.redis.cache.windows.net"
+  name                = "privatelink.redis.azure.net"
   resource_group_name = var.resource_group_name
   tags                = var.tags
 }
@@ -38,13 +38,13 @@ resource "azurerm_private_dns_zone_virtual_network_link" "acr" {
   tags                  = var.tags
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "sb" {
-  name                  = "link-dns-sb"
-  resource_group_name   = var.resource_group_name
-  private_dns_zone_name = azurerm_private_dns_zone.sb.name
-  virtual_network_id    = var.vnet_id
-  tags                  = var.tags
-}
+# resource "azurerm_private_dns_zone_virtual_network_link" "sb" {
+#   name                  = "link-dns-sb"
+#   resource_group_name   = var.resource_group_name
+#   private_dns_zone_name = azurerm_private_dns_zone.sb.name
+#   virtual_network_id    = var.vnet_id
+#   tags                  = var.tags
+# }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "redis" {
   name                  = "link-dns-redis"
@@ -102,29 +102,29 @@ resource "azurerm_private_endpoint" "acr" {
   ]
 }
 
-resource "azurerm_private_endpoint" "sb" {
-  name                = "pe-servicebus"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  subnet_id           = var.subnet_endpoints_id
-  tags                = var.tags
-
-  private_service_connection {
-    name                           = "psc-servicebus"
-    private_connection_resource_id = var.servicebus_namespace_id
-    is_manual_connection           = false
-    subresource_names              = ["namespace"]
-  }
-
-  private_dns_zone_group {
-    name                 = "dns-group-sb"
-    private_dns_zone_ids = [azurerm_private_dns_zone.sb.id]
-  }
-
-  depends_on = [
-    azurerm_private_dns_zone_virtual_network_link.sb
-  ]
-}
+# resource "azurerm_private_endpoint" "sb" {
+#   name                = "pe-servicebus"
+#   location            = var.location
+#   resource_group_name = var.resource_group_name
+#   subnet_id           = var.subnet_endpoints_id
+#   tags                = var.tags
+# 
+#   private_service_connection {
+#     name                           = "psc-servicebus"
+#     private_connection_resource_id = var.servicebus_namespace_id
+#     is_manual_connection           = false
+#     subresource_names              = ["namespace"]
+#   }
+# 
+#   private_dns_zone_group {
+#     name                 = "dns-group-sb"
+#     private_dns_zone_ids = [azurerm_private_dns_zone.sb.id]
+#   }
+# 
+#   depends_on = [
+#     azurerm_private_dns_zone_virtual_network_link.sb
+#   ]
+# }
 
 resource "azurerm_private_endpoint" "redis" {
   name                = "pe-redis"
@@ -137,7 +137,7 @@ resource "azurerm_private_endpoint" "redis" {
     name                           = "psc-redis"
     private_connection_resource_id = var.redis_id
     is_manual_connection           = false
-    subresource_names              = ["redisCache"]
+    subresource_names              = ["redisEnterprise"]
   }
 
   private_dns_zone_group {

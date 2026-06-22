@@ -5,7 +5,7 @@ module "aks" {
   name               = "aks-${var.project_name}-${var.environment}"
   location           = var.location
   parent_id          = var.resource_group_id
-  kubernetes_version = "1.30"
+  kubernetes_version = "1.33"
   dns_prefix         = "aks-${var.project_name}-${var.environment}"
   tags               = var.tags
 
