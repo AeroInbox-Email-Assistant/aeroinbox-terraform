@@ -15,6 +15,10 @@ module "aks" {
     dns_service_ip = "10.240.0.10"
   }
 
+  api_server_access_profile = {
+    enable_private_cluster = true
+  }
+
   default_agent_pool = {
     name            = "agentpool"
     vm_size         = var.system_node_vm_size
