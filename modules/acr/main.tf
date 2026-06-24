@@ -7,7 +7,7 @@ module "acr" {
   name                          = lower("acr${replace(var.project_name, "-", "")}${replace(var.environment, "-", "")}")
   resource_group_name           = var.resource_group_name
   location                      = var.location
-  sku                           = "Premium"
+  sku                           = "Standard"
   admin_enabled                 = true
   public_network_access_enabled = true
   zone_redundancy_enabled       = false
