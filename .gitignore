@@ -33,3 +33,4 @@ crash.*.log
 # Standard OS files
 .DS_Store
 Thumbs.db
+graphify-out/

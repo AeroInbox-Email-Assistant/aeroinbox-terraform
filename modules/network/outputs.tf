@@ -27,3 +27,13 @@ output "subnet_endpoints_id" {
   value       = module.vnet.subnets["snet-endpoints"].resource_id
   description = "The resource ID of the private endpoints subnet"
 }
+
+output "subnet_bastion_id" {
+  value       = module.vnet.subnets["AzureBastionSubnet"].resource_id
+  description = "The resource ID of the Azure Bastion subnet"
+}
+
+output "subnet_jumpbox_id" {
+  value       = module.vnet.subnets["snet-jumpbox"].resource_id
+  description = "The resource ID of the private Jumpbox subnet"
+}

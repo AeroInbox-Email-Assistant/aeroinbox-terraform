@@ -26,6 +26,8 @@ module "network" {
   subnet_appgw_prefixes     = var.subnet_appgw_prefixes
   subnet_db_prefixes        = var.subnet_db_prefixes
   subnet_endpoints_prefixes = var.subnet_endpoints_prefixes
+  subnet_bastion_prefixes   = var.subnet_bastion_prefixes
+  subnet_jumpbox_prefixes   = var.subnet_jumpbox_prefixes
   tags                      = local.tags
 
   depends_on = [module.resource_group]
@@ -195,6 +197,18 @@ module "private_endpoints" {
     module.database
   ]
 }
+
+module "bastion_jumpbox" {
+  source              = "../../modules/bastion-jumpbox"
+  resource_group_name = module.resource_group.name
+  location            = module.resource_group.location
+  subnet_bastion_id   = module.network.subnet_bastion_id
+  subnet_jumpbox_id   = module.network.subnet_jumpbox_id
+  project_name        = var.project_name
+  environment         = var.environment
+  tags                = local.tags
+}
+
 
 # Role Assignments
 resource "azurerm_role_assignment" "aks_gw_contributor" {

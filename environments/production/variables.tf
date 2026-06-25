@@ -70,6 +70,18 @@ variable "subnet_endpoints_prefixes" {
   default     = ["10.0.18.0/24"]
 }
 
+variable "subnet_bastion_prefixes" {
+  type        = list(string)
+  description = "The IP address range for Azure Bastion Subnet (must be at least /26)"
+  default     = ["10.0.19.0/26"]
+}
+
+variable "subnet_jumpbox_prefixes" {
+  type        = list(string)
+  description = "The IP address range for the private Jumpbox subnet"
+  default     = ["10.0.20.0/28"]
+}
+
 variable "system_node_vm_size" {
   type        = string
   description = "The VM size for system node pool"

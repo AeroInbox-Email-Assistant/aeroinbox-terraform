@@ -34,5 +34,13 @@ module "vnet" {
       name             = "snet-endpoints"
       address_prefixes = var.subnet_endpoints_prefixes
     }
+    AzureBastionSubnet = {
+      name             = "AzureBastionSubnet"
+      address_prefixes = var.subnet_bastion_prefixes
+    }
+    snet-jumpbox = {
+      name             = "snet-jumpbox"
+      address_prefixes = var.subnet_jumpbox_prefixes
+    }
   }
 }

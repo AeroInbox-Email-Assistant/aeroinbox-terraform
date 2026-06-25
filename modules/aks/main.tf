@@ -6,8 +6,11 @@ module "aks" {
   location           = var.location
   parent_id          = var.resource_group_id
   kubernetes_version = "1.33"
-  dns_prefix         = "aks-${var.project_name}-${var.environment}"
-  tags               = var.tags
+  dns_prefix              = "aks-${var.project_name}-${var.environment}"
+  tags                    = var.tags
+  api_server_access_profile = {
+    enable_private_cluster = true
+  }
 
   network_profile = {
     network_plugin = "azure"

@@ -52,3 +52,14 @@ variable "tags" {
   type        = map(string)
   description = "A mapping of tags to assign to the virtual network"
 }
+
+variable "subnet_bastion_prefixes" {
+  type        = list(string)
+  description = "The address prefixes for the Azure Bastion subnet (AzureBastionSubnet)"
+}
+
+variable "subnet_jumpbox_prefixes" {
+  type        = list(string)
+  description = "The address prefixes for the private Jumpbox subnet"
+}
+
