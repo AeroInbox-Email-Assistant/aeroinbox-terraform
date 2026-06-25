@@ -42,7 +42,7 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
   name                            = "vm-jumpbox"
   resource_group_name             = var.resource_group_name
   location                        = var.location
-  size                            = "Standard_B2s"
+  size                            = "Standard_B2s_v2"
   admin_username                  = "azureuser"
   admin_password                  = "P@ssw0rd@123"
   disable_password_authentication = false # Required to enable username/password login
