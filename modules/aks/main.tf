@@ -87,7 +87,7 @@ resource "azurerm_federated_identity_credential" "api" {
   parent_id           = var.api_identity_id
   audience            = ["api://AzureADTokenExchange"]
   issuer              = module.aks.oidc_issuer_profile_issuer_url
-  subject             = "system:serviceaccount:aeroinbox:api-sa"
+  subject             = "system:serviceaccount:production:api-sa"
 }
 
 resource "azurerm_federated_identity_credential" "gmail" {
@@ -96,7 +96,7 @@ resource "azurerm_federated_identity_credential" "gmail" {
   parent_id           = var.gmail_identity_id
   audience            = ["api://AzureADTokenExchange"]
   issuer              = module.aks.oidc_issuer_profile_issuer_url
-  subject             = "system:serviceaccount:aeroinbox:gmail-sa"
+  subject             = "system:serviceaccount:production:gmail-sa"
 }
 
 resource "azurerm_federated_identity_credential" "ai" {
@@ -105,7 +105,7 @@ resource "azurerm_federated_identity_credential" "ai" {
   parent_id           = var.ai_identity_id
   audience            = ["api://AzureADTokenExchange"]
   issuer              = module.aks.oidc_issuer_profile_issuer_url
-  subject             = "system:serviceaccount:aeroinbox:ai-sa"
+  subject             = "system:serviceaccount:production:ai-sa"
 }
 
 resource "azurerm_federated_identity_credential" "rule_engine" {
@@ -114,7 +114,7 @@ resource "azurerm_federated_identity_credential" "rule_engine" {
   parent_id           = var.rule_engine_identity_id
   audience            = ["api://AzureADTokenExchange"]
   issuer              = module.aks.oidc_issuer_profile_issuer_url
-  subject             = "system:serviceaccount:aeroinbox:rule-engine-sa"
+  subject             = "system:serviceaccount:production:rule-engine-sa"
 }
 
 resource "azurerm_federated_identity_credential" "meeting" {
@@ -123,5 +123,5 @@ resource "azurerm_federated_identity_credential" "meeting" {
   parent_id           = var.meeting_identity_id
   audience            = ["api://AzureADTokenExchange"]
   issuer              = module.aks.oidc_issuer_profile_issuer_url
-  subject             = "system:serviceaccount:aeroinbox:meeting-sa"
+  subject             = "system:serviceaccount:production:meeting-sa"
 }
