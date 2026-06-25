@@ -1,12 +1,12 @@
-resource "random_id" "kv_name" {
-  byte_length = 4
+resource "random_id" "kv_name_new" {
+  byte_length = 3
 }
 
 module "keyvault" {
   source  = "Azure/avm-res-keyvault-vault/azurerm"
   version = "0.9.1"
 
-  name                           = "kv-${var.project_name}-${var.environment}-${random_id.kv_name.hex}"
+  name                           = "kv-${var.project_name}-${var.environment}-${random_id.kv_name_new.hex}"
   resource_group_name            = var.resource_group_name
   location                       = var.location
   tenant_id                      = var.tenant_id
