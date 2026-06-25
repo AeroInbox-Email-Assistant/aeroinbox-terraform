@@ -1,3 +1,30 @@
+# 1. Provision Public IP for NAT Gateway
+resource "azurerm_public_ip" "natgw" {
+  name                = "pip-natgw-${var.project_name}-${var.environment}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+  tags                = var.tags
+}
+
+# 2. Provision NAT Gateway Resource
+resource "azurerm_nat_gateway" "natgw" {
+  name                    = "natgw-${var.project_name}-${var.environment}"
+  location                = var.location
+  resource_group_name     = var.resource_group_name
+  sku_name                = "Standard"
+  idle_timeout_in_minutes = 4
+  tags                    = var.tags
+}
+
+# 3. Associate Public IP with NAT Gateway
+resource "azurerm_nat_gateway_public_ip_association" "natgw" {
+  nat_gateway_id       = azurerm_nat_gateway.natgw.id
+  public_ip_address_id = azurerm_public_ip.natgw.id
+}
+
+# 4. Provision Virtual Network and Subnets
 module "vnet" {
   source  = "Azure/avm-res-network-virtualnetwork/azurerm"
   version = "0.17.1"
@@ -12,6 +39,9 @@ module "vnet" {
     snet-aks = {
       name             = "snet-aks"
       address_prefixes = var.subnet_aks_prefixes
+      nat_gateway = {
+        id = azurerm_nat_gateway.natgw.id
+      }
     }
     snet-appgw = {
       name             = "snet-appgw"
@@ -41,40 +71,9 @@ module "vnet" {
     snet-jumpbox = {
       name             = "snet-jumpbox"
       address_prefixes = var.subnet_jumpbox_prefixes
+      nat_gateway = {
+        id = azurerm_nat_gateway.natgw.id
+      }
     }
   }
 }
-
-resource "azurerm_public_ip" "natgw" {
-  name                = "pip-natgw-${var.project_name}-${var.environment}"
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  allocation_method   = "Static"
-  sku                 = "Standard"
-  tags                = var.tags
-}
-
-resource "azurerm_nat_gateway" "natgw" {
-  name                    = "natgw-${var.project_name}-${var.environment}"
-  location                = var.location
-  resource_group_name     = var.resource_group_name
-  sku_name                = "Standard"
-  idle_timeout_in_minutes = 4
-  tags                    = var.tags
-}
-
-resource "azurerm_nat_gateway_public_ip_association" "natgw" {
-  nat_gateway_id       = azurerm_nat_gateway.natgw.id
-  public_ip_address_id = azurerm_public_ip.natgw.id
-}
-
-resource "azurerm_subnet_nat_gateway_association" "jumpbox" {
-  subnet_id      = module.vnet.subnets["snet-jumpbox"].resource_id
-  nat_gateway_id = azurerm_nat_gateway.natgw.id
-}
-
-resource "azurerm_subnet_nat_gateway_association" "aks" {
-  subnet_id      = module.vnet.subnets["snet-aks"].resource_id
-  nat_gateway_id = azurerm_nat_gateway.natgw.id
-}
-
