@@ -37,7 +37,7 @@ variable "environment" {
 variable "location" {
   type        = string
   description = "The Azure region to deploy resources"
-  default     = "centralindia"
+  default     = "indonesiacentral"
 }
 
 variable "vnet_address_space" {
