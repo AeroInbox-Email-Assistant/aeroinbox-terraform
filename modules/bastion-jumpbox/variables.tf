@@ -32,3 +32,11 @@ variable "tags" {
   type        = map(string)
   description = "A mapping of tags to assign to the resources"
 }
+
+variable "kube_config" {
+  type        = string
+  description = "The raw kubeconfig for the private AKS cluster"
+  sensitive   = true
+  default     = ""
+}
+

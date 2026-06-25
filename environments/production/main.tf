@@ -207,6 +207,7 @@ module "bastion_jumpbox" {
   project_name        = var.project_name
   environment         = var.environment
   tags                = local.tags
+  kube_config         = module.aks.kube_config
 }
 
 

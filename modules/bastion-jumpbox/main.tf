@@ -61,6 +61,12 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
     sku       = "22_04-lts"
     version   = "latest"
   }
+
+  user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
+    kube_config    = var.kube_config
+    aeroinbox_yaml = file("${path.module}/../../../aeroinbox-helm/argocd/applications/aeroinbox.yaml")
+  }))
+
   tags = var.tags
 }
 
