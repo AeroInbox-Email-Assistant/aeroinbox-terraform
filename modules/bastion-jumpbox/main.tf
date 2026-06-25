@@ -62,7 +62,7 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
     version   = "latest"
   }
 
-  user_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
+  custom_data = base64encode(templatefile("${path.module}/user_data.sh.tpl", {
     kube_config    = var.kube_config
     aeroinbox_yaml = file("${path.module}/aeroinbox.yaml")
   }))
