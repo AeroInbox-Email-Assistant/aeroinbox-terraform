@@ -29,8 +29,8 @@ output "aks_identity_principal_id" {
 }
 
 output "kube_config" {
-  value       = module.aks.kube_config
-  description = "The raw kubeconfig YAML for the AKS cluster"
+  value       = module.aks.kube_admin_config
+  description = "The raw admin kubeconfig YAML for the AKS cluster"
   sensitive   = true
 }
 

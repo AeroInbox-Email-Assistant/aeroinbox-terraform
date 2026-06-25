@@ -2,11 +2,11 @@
 set -e
 
 LOG_FILE="/home/azureuser/bootstrap.log"
-exec > >(tee -a $$LOG_FILE) 2>&1
+exec > >(tee -a $LOG_FILE) 2>&1
 
 echo "============================================="
 echo "Starting Automated AeroInbox Bootstrapping..."
-echo "Timestamp: $$(date)"
+echo "Timestamp: $(date)"
 echo "============================================="
 
 # 1. Setup kubeconfig
@@ -53,11 +53,11 @@ for i in {1..30}; do
     success=true
     break
   fi
-  echo "AKS API not yet reachable, retrying in 10 seconds (attempt $$i/30)..."
+  echo "AKS API not yet reachable, retrying in 10 seconds (attempt $i/30)..."
   sleep 10
 done
 
-if [ "$$success" = "false" ]; then
+if [ "$success" = "false" ]; then
   echo "Timeout waiting for AKS API server connection."
   exit 1
 fi
@@ -73,6 +73,6 @@ kubectl apply -f /home/azureuser/aeroinbox.yaml
 
 echo "============================================="
 echo "AeroInbox Bootstrapping completed successfully!"
-echo "Timestamp: $$(date)"
+echo "Timestamp: $(date)"
 echo "============================================="
-chown azureuser:azureuser $$LOG_FILE
+chown azureuser:azureuser $LOG_FILE
