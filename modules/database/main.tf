@@ -81,3 +81,10 @@ resource "azurerm_managed_redis" "redis" {
     access_keys_authentication_enabled = true
   }
 }
+
+resource "azurerm_postgresql_flexible_server_database" "aeroinbox" {
+  name      = "aeroinbox"
+  server_id = module.postgresql.resource_id
+  collation = "en_US.utf8"
+  charset   = "utf8"
+}
