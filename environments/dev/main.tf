@@ -196,17 +196,29 @@ module "private_endpoints" {
   ]
 }
 
+# Dynamic lookup of AGIC Managed Identity created by AKS
+data "azurerm_user_assigned_identity" "agic" {
+  name                = "ingressapplicationgateway-${module.aks.aks_cluster_name}"
+  resource_group_name = module.aks.aks_node_resource_group
+}
+
 # Role Assignments
 resource "azurerm_role_assignment" "aks_gw_contributor" {
   scope                = module.appgateway.appgw_id
   role_definition_name = "Contributor"
-  principal_id         = module.aks.aks_identity_principal_id
+  principal_id         = data.azurerm_user_assigned_identity.agic.principal_id
 }
 
 resource "azurerm_role_assignment" "aks_rg_reader" {
   scope                = module.resource_group.id
   role_definition_name = "Reader"
-  principal_id         = module.aks.aks_identity_principal_id
+  principal_id         = data.azurerm_user_assigned_identity.agic.principal_id
+}
+
+resource "azurerm_role_assignment" "agic_vnet_network_contributor" {
+  scope                = module.network.vnet_id
+  role_definition_name = "Network Contributor"
+  principal_id         = data.azurerm_user_assigned_identity.agic.principal_id
 }
 
 resource "azurerm_role_assignment" "kubelet_acr_pull" {
