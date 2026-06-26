@@ -43,3 +43,8 @@ output "aks_control_plane_private_fqdn" {
   value       = module.aks.private_fqdn
   description = "The control plane private FQDN of the AKS cluster (if private)"
 }
+
+output "aks_node_resource_group" {
+  value       = module.aks.node_resource_group_name
+  description = "The auto-created node resource group for AKS agent nodes"
+}

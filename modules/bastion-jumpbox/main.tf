@@ -13,7 +13,10 @@ resource "azurerm_bastion_host" "bastion" {
   name                = "bastion-${var.project_name}-${var.environment}"
   location            = var.location
   resource_group_name = var.resource_group_name
-  sku                 = "Basic"
+  sku                 = "Standard"
+  tunneling_enabled   = true
+  copy_paste_enabled  = true
+  file_copy_enabled   = true
 
   ip_configuration {
     name                 = "configuration"
